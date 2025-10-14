@@ -5,7 +5,7 @@ import { MapComponent, MapMarker } from '../../components/map/map.component';
 import { ExperienceService } from '../../core/services/experience.service';
 import { ConsultorioService } from '../../core/services/consultorio.service';
 import { Experience, ExperienceSummary } from '../../shared/models/experience.model';
-import { Consultorio, ConsultorioFilters } from '../../shared/models/consultorio.model';
+import { Consultorio, ConsultorioFilters, ConsultorioPayload } from '../../shared/models/consultorio.model';
 import { ExperienceFormComponent, ExperienceFormValue } from '../experience/experience-form.component';
 import { ConsultorioFormComponent, ConsultorioFormValue } from '../consultorios/consultorio-form.component';
 import { AuthService } from '../../core/services/auth.service';
@@ -22,7 +22,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   consultorios: Consultorio[] = [];
   experienceSummaries: Record<string, ExperienceSummary> = {};
 
-  loadingConsultorios = false;
+  loadingConsultorios = false;  
   loadingExperiences = false;
   submittingExperience = false;
   submittingConsultorio = false;
@@ -63,8 +63,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.searchForm = this.fb.group({
       q: [''],
       tipo_prestador: [''],
-      localidad: [null],
-      upz: [null]
+      tipo_servicio: [''],
+      localidad: [''],
+      upz: ['']
     });
 
     this.loadConsultorios();
@@ -78,18 +79,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
-    const raw = this.searchForm.getRawValue();
-    const filters: ConsultorioFilters = {
-      q: raw.q ?? '',
-      tipo_prestador: raw.tipo_prestador ?? '',
-      localidad: this.toFilterNumber(raw.localidad),
-      upz: this.toFilterNumber(raw.upz)
-    };
+    const filters = this.searchForm.getRawValue() as ConsultorioFilters;
     this.loadConsultorios(filters);
   }
 
   onResetFilters(): void {
-    this.searchForm.reset({ q: '', tipo_prestador: '', localidad: null, upz: null });
+    this.searchForm.reset({ q: '', tipo_prestador: '', tipo_servicio: '', localidad: '', upz: '' });
     this.loadConsultorios();
   }
 
@@ -142,12 +137,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   openEditConsultorio(marker: MapMarker): void {
     const consultorio = this.consultorios.find((item) => item.id === marker.id);
-    if (!consultorio) return;
+    if (!consultorio) {
+      console.warn('⚠️ Consultorio no encontrado para edición', marker);
+      return;
+    }
 
-    const [lng, lat] = consultorio.coordenadas;
+    const baseCoordinates = Array.isArray(consultorio.coordenadas)
+      ? consultorio.coordenadas
+      : [marker.lng, marker.lat];
+    const lng = Number(baseCoordinates?.[0]);
+    const lat = Number(baseCoordinates?.[1]);
+
+    let finalLng = lng;
+    let finalLat = lat;
+    const coordsValid = this.isLngLatValid(lng, lat);
+
+    if (!coordsValid) {
+      console.warn('⚠️ Coordenadas inválidas para edición, usando valores del marcador', {
+        consultorio,
+        marker
+      });
+      if (this.isLngLatValid(marker.lng, marker.lat)) {
+        finalLng = marker.lng;
+        finalLat = marker.lat;
+      } else {
+        finalLng = 0;
+        finalLat = 0;
+      }
+    }
+
     this.pendingCoordinates = null;
     this.currentConsultorioId = consultorio.id;
     this.isCreateMode = false;
+    this.submittingConsultorio = false;
     this.openConsultorioModal(
       {
         identifica: consultorio.identifica,
@@ -159,8 +181,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         clase_de_p: consultorio.clase_de_p ?? '',
         codigo_loc: consultorio.codigo_loc ?? null,
         codigo_upz: consultorio.codigo_upz ?? null,
-        latitud: lat,
-        longitud: lng
+        latitud: finalLat,
+        longitud: finalLng
       },
       'Editar consultorio'
     );
@@ -178,30 +200,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.submittingConsultorio = true;
     this.consultorioSubmissionError = null;
 
-    const longitud = this.pendingCoordinates?.lng ?? Number(formValue.longitud ?? NaN);
-    const latitud = this.pendingCoordinates?.lat ?? Number(formValue.latitud ?? NaN);
+    const longitud = Number(formValue.longitud ?? 0);
+    const latitud = Number(formValue.latitud ?? 0);
 
     if (!this.isLngLatValid(longitud, latitud)) {
-      this.consultorioSubmissionError =
-        'Selecciona una ubicación válida en el mapa antes de guardar.';
-      this.submittingConsultorio = false;
-      return;
+      console.warn('⚠️ Coordenadas inválidas detectadas', { longitud, latitud });
     }
 
-    const payload = {
-      identifica: formValue.identifica ?? '',
-      codigo_de: formValue.codigo_de ?? '',
-      nombre_de: formValue.nombre_de ?? '',
-      direccion: formValue.direccion ?? '',
-      telefono: formValue.telefono ?? '',
-      tipo_de_pr: formValue.tipo_de_pr ?? '',
-      clase_de_p: formValue.clase_de_p ?? '',
-      codigo_loc: formValue.codigo_loc ?? undefined,
-      codigo_upz: formValue.codigo_upz ?? undefined,
+    const identifica = formValue.identifica?.toString().trim() ?? undefined;
+    const codigoDe = formValue.codigo_de?.toString().trim() ?? undefined;
+    const nombre = formValue.nombre_de?.trim() ?? '';
+    const direccion = formValue.direccion?.trim() ?? '';
+    const telefono = formValue.telefono?.trim() ?? undefined;
+    const tipoPrestacion = formValue.tipo_de_pr?.trim() ?? undefined;
+    const clasePrestador = formValue.clase_de_p?.trim() ?? undefined;
+
+    const payload: ConsultorioPayload = {
+      nombre_de: nombre,
+      direccion,
       coordenadas: [longitud, latitud] as [number, number],
-      longitud,
-      latitud
+      latitud,
+      longitud
     };
+
+    if (identifica) payload.identifica = identifica;
+    if (codigoDe) payload.codigo_de = codigoDe;
+    if (telefono) payload.telefono = telefono;
+    if (tipoPrestacion) payload.tipo_de_pr = tipoPrestacion;
+    if (clasePrestador) payload.clase_de_p = clasePrestador;
+    if (formValue.codigo_loc !== null && formValue.codigo_loc !== undefined) {
+      payload.codigo_loc = formValue.codigo_loc;
+    }
+    if (formValue.codigo_upz !== null && formValue.codigo_upz !== undefined) {
+      payload.codigo_upz = formValue.codigo_upz;
+    }
 
     const request$ = this.currentConsultorioId
       ? this.consultorioService.updateConsultorio(this.currentConsultorioId, payload)
@@ -217,7 +249,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('❌ Error al guardar consultorio:', err);
-        this.consultorioSubmissionError = this.formatConsultorioError(err);
+        this.consultorioSubmissionError =
+          'No fue posible guardar el consultorio. Revisa los datos e inténtalo nuevamente.';
         this.submittingConsultorio = false;
       }
     });
@@ -281,7 +314,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadConsultorios(filters: ConsultorioFilters = {}): void {
-    console.log('🧩 Filtros recibidos:', filters);
     this.loadingConsultorios = true;
 
     forkJoin({
@@ -289,10 +321,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       geojson: this.authService.getGeoData()
     }).subscribe({
       next: ({ consultorios, geojson }) => {
-        console.log('✅ Consultorios cargados:', consultorios.length);
-        console.log('✅ GeoJSON features:', geojson.features?.length ?? geojson.length);
 
-        // Crear un mapa rápido de geometrías por id
         const geoMap = new Map<number, any>();
         const features = geojson.features ?? geojson;
         for (const feature of features) {
@@ -300,16 +329,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
           if (id != null) geoMap.set(Number(id), feature.geometry);
         }
 
-        // Combinar consultorios con sus geometrías
         this.consultorios = consultorios.map((c) => ({
           ...c,
           geometry: geoMap.get(c.id) ?? null
         }));
 
-        // Generar marcadores
         this.markers = this.mapConsultoriosToMarkers(this.consultorios);
 
-        console.log('📍 Markers generados:', this.markers.length);
         this.loadingConsultorios = false;
       },
       error: (err) => {
@@ -501,64 +527,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private deg2rad(deg: number): number {
     return deg * (Math.PI / 180);
-  }
-
-  private toFilterNumber(value: unknown): number | undefined {
-    if (value === null || value === undefined || value === '') return undefined;
-    const num = Number(value);
-    return Number.isFinite(num) ? num : undefined;
-  }
-
-  private formatConsultorioError(err: unknown): string {
-    const fallback =
-      'No fue posible guardar el consultorio. Revisa los datos e inténtalo nuevamente.';
-    if (!err || typeof err !== 'object') return fallback;
-    const httpError = err as { status?: number; error?: any; message?: string };
-    const { status, error } = httpError;
-
-    const errorMessages: string[] = [];
-    if (error) {
-      if (typeof error === 'string') {
-        errorMessages.push(error);
-      } else if (typeof error === 'object') {
-        if (typeof error.detail === 'string') {
-          errorMessages.push(error.detail);
-        }
-        if (Array.isArray(error.errors)) {
-          error.errors.forEach((e: any) => {
-            if (typeof e === 'string') errorMessages.push(e);
-            else if (e && typeof e.message === 'string') errorMessages.push(e.message);
-          });
-        }
-        Object.entries(error).forEach(([key, value]) => {
-          if (key === 'detail' || key === 'errors') return;
-          if (typeof value === 'string') {
-            errorMessages.push(`${key}: ${value}`);
-          } else if (Array.isArray(value)) {
-            value.forEach((item) => {
-              if (typeof item === 'string') {
-                errorMessages.push(`${key}: ${item}`);
-              } else if (item && typeof item.message === 'string') {
-                errorMessages.push(`${key}: ${item.message}`);
-              }
-            });
-          }
-        });
-      }
-    }
-
-    if (!errorMessages.length && typeof httpError.message === 'string') {
-      errorMessages.push(httpError.message);
-    }
-
-    if (!errorMessages.length && typeof status === 'number') {
-      if (status >= 500)
-        errorMessages.push('El servidor encontró un problema. Intenta nuevamente más tarde.');
-      else if (status === 0)
-        errorMessages.push('No se pudo contactar el servidor. Verifica tu conexión o CORS.');
-    }
-
-    return errorMessages.length ? errorMessages.join('\n') : fallback;
   }
 
 }

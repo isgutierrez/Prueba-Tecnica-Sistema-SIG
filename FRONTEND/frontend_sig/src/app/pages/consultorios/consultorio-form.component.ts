@@ -50,8 +50,8 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      identifica: ['', [Validators.required, Validators.maxLength(50)]],
-      codigo_de: ['', [Validators.required, Validators.maxLength(50)]],
+      identifica: ['', [Validators.maxLength(50)]],
+      codigo_de: ['', [Validators.maxLength(50)]],
       nombre_de: ['', [Validators.required, Validators.maxLength(200)]],
       direccion: ['', [Validators.required, Validators.maxLength(250)]],
       telefono: ['', [Validators.maxLength(50)]],
@@ -81,7 +81,14 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
   }
 
   onSubmit(): void {
-    if (this.form.invalid || this.loading) {
+
+    if (this.loading) {
+      console.warn('⏳ Form submission blocked: loading in progress');
+      return;
+    }
+
+    if (this.form.invalid) {
+      console.warn('⚠️ Form is invalid', this.form.errors);
       this.form.markAllAsTouched();
       return;
     }
@@ -90,8 +97,8 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
 
     this.submitConsultorio.emit({
       ...value,
-      identifica: value.identifica ?? '',
-      codigo_de: value.codigo_de ?? '',
+      identifica: value.identifica?.toString().trim() || null,
+      codigo_de: value.codigo_de?.toString().trim() || null,
       nombre_de: value.nombre_de ?? '',
       direccion: value.direccion ?? '',
       telefono: value.telefono ?? '',
@@ -138,5 +145,12 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
     } else {
       this.form.enable({ emitEvent: false });
     }
+  }
+
+  private getInvalidControls(): string[] {
+    if (!this.form) return [];
+    return Object.entries(this.form.controls)
+      .filter(([, control]) => control.invalid)
+      .map(([name]) => name);
   }
 }

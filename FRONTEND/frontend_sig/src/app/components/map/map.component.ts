@@ -180,7 +180,6 @@ private initializeMap(): void {
   }
 
   this.map.on('load', () => {
-    console.log('🗺️ Mapa cargado correctamente');
     this.setupSource();
     this.setupLayers();
     this.applyClusterVisibility();
@@ -199,7 +198,6 @@ private initializeMap(): void {
 
     const { lng, lat } = e.lngLat;
     if (Number.isFinite(lng) && Number.isFinite(lat)) {
-      console.log('📍 Clic libre detectado:', lng, lat);
       this.mapClick.emit({ lng, lat });
     } else {
       console.warn('⚠️ Coordenadas no válidas en clic:', e);

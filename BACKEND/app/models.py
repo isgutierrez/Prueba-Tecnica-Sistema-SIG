@@ -5,7 +5,7 @@ class Consultorio(models.Model):
     class Meta:
         db_table = 'consultorios'
         managed = False
-        
+    
     identifica = models.BigIntegerField()
     codigo_de = models.CharField(max_length=10, db_column='código_de')
     nombre_de = models.CharField(max_length=100, db_column='nombre_de_')

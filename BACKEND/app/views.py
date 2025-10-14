@@ -59,10 +59,14 @@ def _coerce_consultorio_value(field, value):
 
 
 def _generate_identifiers():
-    max_identifica = Consultorio.objects.aggregate(Max("identifica")).get("identifica__max") or 0
-    new_identifica = max_identifica + 1
+    aggregates = Consultorio.objects.aggregate(
+        max_identifica=Max("identifica"),
+        max_id=Max("id"),
+    )
+    new_identifica = (aggregates.get("max_identifica") or 0) + 1
+    new_id = (aggregates.get("max_id") or 0) + 1
     codigo = f"C{new_identifica:06d}"
-    return new_identifica, codigo
+    return new_id, new_identifica, codigo
 
 
 @require_http_methods(["GET"])
@@ -154,12 +158,13 @@ def consultorio_collection(request):
     if payload is None:
         return JsonResponse({"error": "JSON inválido"}, status=HTTPStatus.BAD_REQUEST)
 
+    payload.setdefault("coordenada", payload.get("longitud"))
+    payload.setdefault("coordena_1", payload.get("latitud"))
+
     required = [
         "nombre_de",
-        "nombre_del",
         "telefono",
         "direccion",
-        "correo_ele",
         "tipo_de_pr",
         "clase_de_p",
         "codigo_loc",
@@ -187,16 +192,25 @@ def consultorio_collection(request):
         "coordenada",
         "coordena_1",
     }
+    data = {}
     try:
-        data = {field: _coerce_consultorio_value(field, payload[field]) for field in field_names}
+        for field in field_names:
+            value = payload.get(field, "")
+            if value in (None, "") and field in {"nombre_del", "correo_ele"}:
+                data[field] = ""
+                continue
+            if value in (None, ""):
+                continue
+            data[field] = _coerce_consultorio_value(field, value)
     except (TypeError, ValueError):
         return JsonResponse(
             {"error": "Datos de consultorio inválidos"},
             status=HTTPStatus.BAD_REQUEST,
         )
-    identifica, codigo = _generate_identifiers()
+    new_id, new_identifica, codigo = _generate_identifiers()
     consultorio = Consultorio.objects.create(
-        identifica=identifica,
+        id=new_id,
+        identifica=new_identifica,
         codigo_de=codigo,
         **data,
     )
@@ -217,6 +231,11 @@ def consultorio_detail(request, pk):
     payload = _load_payload(request)
     if payload is None:
         return JsonResponse({"error": "JSON inválido"}, status=HTTPStatus.BAD_REQUEST)
+
+    if "longitud" in payload and payload.get("coordenada") in (None, "", 0):
+        payload["coordenada"] = payload["longitud"]
+    if "latitud" in payload and payload.get("coordena_1") in (None, "", 0):
+        payload["coordena_1"] = payload["latitud"]
 
     fields = {
         "nombre_de",
