@@ -1,0 +1,133 @@
+<div class="container mx-auto space-y-6 p-4">
+  <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
+    <h2 class="text-lg font-semibold text-slate-900">Buscar consultorios</h2>
+    <p class="mt-1 text-sm text-slate-500">Filtra por nombre, tipo de servicio, clase de prestador o ubicación.</p>
+
+    <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="filter-q">Búsqueda libre</label>
+        <input
+          id="filter-q"
+          type="text"
+          placeholder="Nombre o dirección"
+          formControlName="q"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="filter-tipo-prestador">Tipo de prestador</label>
+        <select
+          id="filter-tipo-prestador"
+          formControlName="tipo_prestador"
+          class="w-full appearance-none rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        >
+          <option value="">Todos</option>
+          <option *ngFor="let option of tipoPrestadorOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="filter-localidad">Localidad</label>
+        <input
+          id="filter-localidad"
+          type="number"
+          placeholder="Código localidad"
+          formControlName="localidad"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="filter-upz">UPZ</label>
+        <input
+          id="filter-upz"
+          type="number"
+          placeholder="Código UPZ"
+          formControlName="upz"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+      </div>
+
+      <div class="mt-6 flex flex-wrap items-center gap-3 md:col-span-2 lg:col-span-3">
+        <button
+          type="submit"
+          class="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-lg transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          Buscar
+        </button>
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 transition hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          (click)="onResetFilters()"
+        >
+          Limpiar filtros
+        </button>
+        <button
+          type="button"
+          class="ml-auto inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700 shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          (click)="toggleCreateMode()"
+        >
+          {{ isCreateMode ? 'Cancelar creación' : 'Nuevo consultorio' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <div class="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+    <div
+      *ngIf="successMessage"
+      class="pointer-events-none absolute right-4 top-4 z-50 flex max-w-xs items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 shadow-xl"
+    >
+      <span class="text-lg leading-none">✔</span>
+      <p class="whitespace-pre-line">{{ successMessage }}</p>
+    </div>
+
+    <div
+      *ngIf="isCreateMode"
+      class="pointer-events-none absolute left-4 top-4 z-40 max-w-sm rounded-xl border border-blue-200 bg-blue-600/90 px-4 py-3 text-sm font-medium text-white shadow-lg"
+    >
+      Haz clic en el mapa para seleccionar la ubicación del nuevo consultorio.
+    </div>
+
+    <app-map
+      [markers]="markers"
+      [config]="{ center: [-74.0721, 4.7110], zoom: 11 }"
+      [useGoogleStyle]="true"
+      [showControls]="true"
+      [experienceSummaries]="experienceSummaries"
+      (addExperienceRequested)="openExperienceModal($event)"
+      (editConsultorioRequested)="openEditConsultorio($event)"
+      (mapClick)="handleMapClick($event)"
+    ></app-map>
+
+    <div
+      *ngIf="showExperienceModal"
+      class="absolute inset-0 z-40 flex items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm"
+    >
+      <app-experience-form
+        [consultorioName]="selectedMarker?.nombre ?? 'Consultorio'"
+        [loading]="submittingExperience"
+        [submissionError]="experienceSubmissionError"
+        (submitExperience)="submitExperience($event)"
+        (cancel)="closeExperienceModal()"
+      ></app-experience-form>
+    </div>
+
+    <div
+      *ngIf="showConsultorioModal"
+      class="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/70 px-4 py-6 backdrop-blur-sm"
+    >
+      <app-consultorio-form
+        [title]="consultorioFormTitle"
+        [initialValue]="consultorioInitialValue"
+        [loading]="submittingConsultorio"
+        [submissionError]="consultorioSubmissionError"
+        (submitConsultorio)="submitConsultorio($event)"
+        (cancel)="cancelConsultorioModal()"
+      ></app-consultorio-form>
+    </div>
+  </div>
+</div>

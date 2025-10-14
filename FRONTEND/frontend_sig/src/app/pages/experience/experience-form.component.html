@@ -1,0 +1,129 @@
+<section
+  class="w-full max-w-[520px] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl"
+>
+  <header class="flex items-start justify-between bg-gradient-to-r from-blue-900 via-blue-600 to-blue-500 px-6 py-5 text-white">
+    <div>
+      <h3 class="text-xl font-semibold tracking-tight">Agregar experiencia</h3>
+      <p class="mt-1 text-sm opacity-90">
+        Comparte tu opinión sobre <span class="font-medium">{{ consultorioName }}</span>
+      </p>
+    </div>
+    <button
+      type="button"
+      class="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-lg text-white transition hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/70"
+      (click)="onCancel()"
+      [disabled]="loading"
+      aria-label="Cerrar formulario"
+    >
+      ✕
+    </button>
+  </header>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="flex flex-col gap-6 bg-slate-50/80 px-6 py-6"
+  >
+    <div class="flex flex-col gap-2">
+      <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="experience-author">
+        Tu nombre
+      </label>
+      <input
+        id="experience-author"
+        type="text"
+        formControlName="author"
+        placeholder="Nombre y apellido"
+        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+        [ngClass]="{
+          'border-red-400 focus:border-red-500 focus:ring-red-200': form.controls.author.invalid && form.controls.author.touched
+        }"
+        [disabled]="loading"
+      />
+      <small
+        *ngIf="form.controls.author.invalid && form.controls.author.touched"
+        class="text-xs font-medium text-red-600"
+      >
+        Ingresa tu nombre (máximo 120 caracteres).
+      </small>
+    </div>
+
+    <div class="flex flex-col gap-2" (mouseleave)="resetStarHover()">
+      <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+        Calificación
+      </label>
+      <input type="hidden" formControlName="rating" />
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          *ngFor="let option of ratings"
+          [disabled]="loading"
+          [ngClass]="option <= displayRating() ? activeStarClasses : inactiveStarClasses"
+          (mouseenter)="onStarHover(option)"
+          (focus)="onStarHover(option)"
+          (click)="setRating(option)"
+          [attr.aria-label]="option + ' estrellas'"
+        >
+          <span class="sr-only">{{ option }} estrellas</span>
+          <span aria-hidden="true">★</span>
+        </button>
+      </div>
+      <div class="text-xs font-semibold uppercase tracking-[0.1em] text-blue-800">
+        {{ displayRating() | number:'1.0-0' }} de 5
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="experience-comment">
+        Cuéntanos tu experiencia
+      </label>
+      <textarea
+        id="experience-comment"
+        formControlName="comment"
+        rows="5"
+        [maxLength]="maxCommentLength"
+        placeholder="Describe el servicio, la atención y cualquier detalle que quieras destacar"
+        class="min-h-[120px] max-h-[260px] w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+        [ngClass]="{
+          'border-red-400 focus:border-red-500 focus:ring-red-200': form.controls.comment.invalid && form.controls.comment.touched
+        }"
+        [disabled]="loading"
+      ></textarea>
+      <div class="self-end text-xs font-medium text-slate-500">
+        {{ commentLength() }}/{{ maxCommentLength }} caracteres
+      </div>
+      <small
+        *ngIf="form.controls.comment.invalid && form.controls.comment.touched"
+        class="text-xs font-medium text-red-600"
+      >
+        Escribe al menos 10 caracteres (máximo {{ maxCommentLength }}).
+      </small>
+    </div>
+
+    <div *ngIf="submissionError" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+      {{ submissionError }}
+    </div>
+
+    <footer class="flex items-center justify-end gap-3">
+      <button
+        type="button"
+        class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+        (click)="onCancel()"
+        [disabled]="loading"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 px-5 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-white shadow-lg transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="loading"
+      >
+        <span
+          *ngIf="loading"
+          class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+          aria-hidden="true"
+        ></span>
+        <span>{{ loading ? 'Guardando…' : 'Enviar experiencia' }}</span>
+      </button>
+    </footer>
+  </form>
+</section>
