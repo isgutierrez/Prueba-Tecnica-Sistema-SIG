@@ -11,14 +11,14 @@ export interface Consultorio {
   codigo_upz?: number;
   coordenadas: [number, number];
 }
-
+//Filtros de busqueda para consultar los consultorios
 export interface ConsultorioFilters {
   q?: string;
   tipo_prestador?: string;
   localidad?: number;
   upz?: number;
 }
-
+// Creacion y actualizacion de consultorios
 export interface ConsultorioPayload {
   identifica?: string;
   codigo_de?: string;
@@ -32,6 +32,9 @@ export interface ConsultorioPayload {
   coordenadas: [number, number];
   latitud?: number | null;
   longitud?: number | null;
+  geom?: string; 
+  correo_ele?: string;
+  nombre_del?: string;
 }
 
 export interface ConsultorioResponse {

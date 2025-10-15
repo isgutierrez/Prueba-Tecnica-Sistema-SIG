@@ -15,6 +15,7 @@ import {
   Validators
 } from '@angular/forms';
 
+//Modelo de datos del formulario
 export interface ConsultorioFormValue {
   identifica: string | null;
   codigo_de: string | null;
@@ -22,11 +23,14 @@ export interface ConsultorioFormValue {
   direccion: string | null;
   telefono?: string | null;
   tipo_de_pr?: string | null;
+  correo_ele?: string | null;
+  nombre_del?: string | null;
   clase_de_p?: string | null;
   codigo_loc?: number | null;
   codigo_upz?: number | null;
   latitud: number | null;
   longitud: number | null;
+  geom?: string | null;
 }
 
 @Component({
@@ -35,6 +39,7 @@ export interface ConsultorioFormValue {
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './consultorio-form.component.html'
 })
+
 export class ConsultorioFormComponent implements OnInit, OnChanges {
   @Input({ required: true }) title = 'Consultorio';
   @Input() loading = false;
@@ -46,8 +51,9 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
 
   form!: FormGroup;
 
-  constructor(private readonly fb: FormBuilder) {}
+  constructor(private readonly fb: FormBuilder) { }
 
+  // Logica de inizializacion del formulario
   ngOnInit(): void {
     this.form = this.fb.group({
       identifica: ['', [Validators.maxLength(50)]],
@@ -55,6 +61,8 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
       nombre_de: ['', [Validators.required, Validators.maxLength(200)]],
       direccion: ['', [Validators.required, Validators.maxLength(250)]],
       telefono: ['', [Validators.maxLength(50)]],
+      correo_ele: ['', [Validators.email]],
+      nombre_del: ['', [Validators.maxLength(120)]],
       tipo_de_pr: ['', [Validators.maxLength(120)]],
       clase_de_p: ['', [Validators.maxLength(120)]],
       codigo_loc: [null as number | null],
@@ -88,7 +96,7 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
     }
 
     if (this.form.invalid) {
-      console.warn('⚠️ Form is invalid', this.form.errors);
+      console.warn('Form is invalid', this.form.errors);
       this.form.markAllAsTouched();
       return;
     }
@@ -102,7 +110,9 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
       nombre_de: value.nombre_de ?? '',
       direccion: value.direccion ?? '',
       telefono: value.telefono ?? '',
+      correo_ele: value.correo_ele ?? '',
       tipo_de_pr: value.tipo_de_pr ?? '',
+      nombre_del: value.nombre_del ?? '',
       clase_de_p: value.clase_de_p ?? '',
       codigo_loc:
         value.codigo_loc !== null && value.codigo_loc !== undefined
@@ -113,7 +123,14 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
           ? Number(value.codigo_upz)
           : null,
       latitud: value.latitud ?? 0,
-      longitud: value.longitud ?? 0
+      longitud: value.longitud ?? 0,
+      geom:
+        value.longitud !== null &&
+          value.latitud !== null &&
+          value.longitud !== 0 &&
+          value.latitud !== 0
+          ? `POINT(${value.longitud} ${value.latitud})`
+          : null
     });
   }
 
@@ -130,6 +147,8 @@ export class ConsultorioFormComponent implements OnInit, OnChanges {
       direccion: value.direccion ?? '',
       telefono: value.telefono ?? '',
       tipo_de_pr: value.tipo_de_pr ?? '',
+      correo_ele: value.correo_ele ?? '',
+      nombre_del: value.nombre_del ?? '',
       clase_de_p: value.clase_de_p ?? '',
       codigo_loc: value.codigo_loc ?? null,
       codigo_upz: value.codigo_upz ?? null,

@@ -48,9 +48,9 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() markers: MapMarker[] = [];
   @Input() features: Feature<Point | null>[] = [];
   @Input() config: MapConfig = {
-    center: [-74.0721, 4.7110],
+    center: [-74.0721, 4.7110],  //centrado en bogotá
     zoom: 12,
-    style: 'https://demotiles.maplibre.org/style.json',
+    style: 'https://demotiles.maplibre.org/style.json', // estilo base
     minZoom: 1,
     maxZoom: 20
   };
@@ -73,6 +73,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Output() addExperienceRequested = new EventEmitter<MapMarker>();
   @Output() editConsultorioRequested = new EventEmitter<MapMarker>();
 
+  //Propiedades internas
   map!: maplibregl.Map;
   private resizeTimeout: any;
   private readonly sourceId = 'consultorios-source';
@@ -99,10 +100,12 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     }
   }
 
+  //Inicialización del mapa
   ngAfterViewInit(): void {
     this.initializeMap();
   }
 
+  // Limpieza al destruir el componente
   ngOnDestroy(): void {
     if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
     this.previewPopup?.remove();
@@ -120,6 +123,8 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     }
   }
 
+  // Detecta cambios en las entradas y actualiza el mapa según sea necesario
+  // especialmente para marcadores, características, agrupamiento y resúmenes de experiencias
   ngOnChanges(changes: SimpleChanges): void {
     const markersChanged = Boolean(changes['markers']);
     const featuresChanged = Boolean(changes['features']);
@@ -152,60 +157,62 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     }
   }
 
-private initializeMap(): void {
-  if (this.mapContainer) {
-    // ✅ Garantiza altura visible
-    this.mapContainer.nativeElement.style.height = this.height;
-    this.updateMapWidth();
-  }
-
-  const mapStyle =
-    this.useGoogleStyle || this.config.useGoogleStyle
-      ? this.getGoogleLikeStyle()
-      : this.config.style || 'https://demotiles.maplibre.org/style.json';
-
-  this.map = new maplibregl.Map({
-    container: this.mapContainer.nativeElement,
-    style: mapStyle,
-    center: this.config.center || [-74.0721, 4.7110],
-    zoom: this.config.zoom || 12,
-    minZoom: this.config.minZoom,
-    maxZoom: this.config.maxZoom,
-  });
-
-  if (this.showControls) {
-    this.map.addControl(new maplibregl.NavigationControl(), 'top-right');
-    this.map.addControl(new maplibregl.FullscreenControl(), 'top-right');
-    this.map.addControl(new maplibregl.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left');
-  }
-
-  this.map.on('load', () => {
-    this.setupSource();
-    this.setupLayers();
-    this.applyClusterVisibility();
-    this.setupClusterInteractions();
-    this.setupClusterToggleControl();
-    this.refreshMarkers();
-    this.mapLoaded.emit(this.map);
-  });
-
-  // ✅ Captura clics sobre el mapa (para crear consultorios)
-  this.map.on('click', (e: maplibregl.MapMouseEvent) => {
-    const features = this.map.queryRenderedFeatures(e.point, {
-      layers: [this.clusterLayerId, this.unclusteredLayerId],
-    });
-    if (features.length > 0) return; // clic sobre un punto existente
-
-    const { lng, lat } = e.lngLat;
-    if (Number.isFinite(lng) && Number.isFinite(lat)) {
-      this.mapClick.emit({ lng, lat });
-    } else {
-      console.warn('⚠️ Coordenadas no válidas en clic:', e);
+  // Inicializa el mapa con las configuraciones y controles especificados
+  private initializeMap(): void {
+    if (this.mapContainer) {
+      // Garantiza altura visible
+      this.mapContainer.nativeElement.style.height = this.height;
+      this.updateMapWidth();
     }
-  });
-}
 
+    // Selección del estilo del mapa
+    const mapStyle =
+      this.useGoogleStyle || this.config.useGoogleStyle
+        ? this.getGoogleLikeStyle()
+        : this.config.style || 'https://demotiles.maplibre.org/style.json';
 
+    this.map = new maplibregl.Map({
+      container: this.mapContainer.nativeElement,
+      style: mapStyle,
+      center: this.config.center || [-74.0721, 4.7110],
+      zoom: this.config.zoom || 12,
+      minZoom: this.config.minZoom,
+      maxZoom: this.config.maxZoom,
+    });
+
+    // Añade controles de navegación, pantalla completa y escala si está habilitado
+    if (this.showControls) {
+      this.map.addControl(new maplibregl.NavigationControl(), 'top-right');
+      this.map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+      this.map.addControl(new maplibregl.ScaleControl({ maxWidth: 100, unit: 'metric' }), 'bottom-left');
+    }
+
+    this.map.on('load', () => {
+      this.setupSource();
+      this.setupLayers();
+      this.applyClusterVisibility();
+      this.setupClusterInteractions();
+      this.setupClusterToggleControl();
+      this.refreshMarkers();
+      this.mapLoaded.emit(this.map);
+    });
+
+    this.map.on('click', (e: maplibregl.MapMouseEvent) => {
+      const features = this.map.queryRenderedFeatures(e.point, {
+        layers: [this.clusterLayerId, this.unclusteredLayerId],
+      });
+      if (features.length > 0) return; // clic sobre un punto existente
+
+      const { lng, lat } = e.lngLat;
+      if (Number.isFinite(lng) && Number.isFinite(lat)) {
+        this.mapClick.emit({ lng, lat });
+      } else {
+        console.warn('Coordenadas no válidas en clic:', e);
+      }
+    });
+  }
+
+  // Valida coordenadas de longitud y latitud y el estilo del mapa
   private getGoogleLikeStyle(): any {
     return {
       "version": 8,
@@ -232,11 +239,13 @@ private initializeMap(): void {
     };
   }
 
+  // Actualiza el ancho del contenedor del mapa según la configuración
   private updateMapWidth(): void {
     if (!this.mapContainer) return;
     this.mapContainer.nativeElement.style.width = this.responsiveWidth ? '100%' : this.width;
   }
 
+  // Verifica que las coordenadas de longitud y latitud sean válidas
   public fitBounds(): void {
     const all = this.collectAllCoordinates();
     if (all.length === 0) return;
@@ -245,6 +254,7 @@ private initializeMap(): void {
     this.map.fitBounds(bounds, { padding: 50 });
   }
 
+  // Actualiza los marcadores en el mapa y maneja la lógica de los popups
   private refreshMarkers(): void {
     const source = this.map.getSource(this.sourceId) as maplibregl.GeoJSONSource | undefined;
     if (!source) {
@@ -268,6 +278,7 @@ private initializeMap(): void {
     }
   }
 
+  // Maneja el estado de agrupamiento y actualiza el mapa 
   private setClusteringEnabled(value: boolean, emit = true): void {
     const normalized = Boolean(value);
     if (this.clusteringEnabled === normalized) {
@@ -296,6 +307,7 @@ private initializeMap(): void {
     this.updateClusterToggleLabel();
   }
 
+  // Reconstruye la fuente y las capas del mapa para reflejar los cambios en los marcadores o el estado de agrupamiento
   private rebuildSource(): void {
     if (!this.map) return;
 
@@ -314,6 +326,7 @@ private initializeMap(): void {
     this.applyClusterVisibility();
   }
 
+  // Aplica la visibilidad de las capas de agrupamiento según el estado actual
   private applyClusterVisibility(): void {
     if (!this.map) return;
     const clusterVisibility = this.clusteringEnabled ? 'visible' : 'none';
@@ -328,6 +341,7 @@ private initializeMap(): void {
     }
   }
 
+  // Configura el control de alternancia de agrupamiento en el mapa
   private setupClusterToggleControl(): void {
     if (!this.enableClusterToggle || this.clusterToggleControl) {
       return;
@@ -643,6 +657,7 @@ private initializeMap(): void {
     return a.lng === b.lng && a.lat === b.lat && a.nombre === b.nombre;
   }
 
+  // Construye una colección de características GeoJSON a partir de los marcadores y características proporcionados
   private buildFeatureCollection(): FeatureCollection<Point, Record<string, unknown>> {
     const markerFeatures = this.markers
       .map(marker => this.markerToFeature(marker))
@@ -660,6 +675,7 @@ private initializeMap(): void {
     };
   }
 
+  // Extrae las coordenadas de un punto GeoJSON
   private markerToFeature(marker: MapMarker): Feature<Point, Record<string, unknown>> | null {
     if (!this.isLngLatValid(marker.lng, marker.lat)) {
       return null;
@@ -675,6 +691,7 @@ private initializeMap(): void {
     };
   }
 
+  // Construye un marcador a partir de una característica GeoJSON
   private buildPropertiesFromMarker(marker: MapMarker): Record<string, unknown> {
     const data = (marker.data ?? {}) as Record<string, unknown>;
     return {

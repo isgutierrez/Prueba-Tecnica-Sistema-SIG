@@ -142,7 +142,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 import os
-
+# Habilita geoespacial en Django
 # GDAL
 GDAL_LIBRARY_PATH = os.path.join("/opt/homebrew/opt/gdal/lib", "libgdal.dylib")
 

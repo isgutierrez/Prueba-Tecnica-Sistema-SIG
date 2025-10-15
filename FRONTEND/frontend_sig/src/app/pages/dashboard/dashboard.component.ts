@@ -10,6 +10,7 @@ import { ExperienceFormComponent, ExperienceFormValue } from '../experience/expe
 import { ConsultorioFormComponent, ConsultorioFormValue } from '../consultorios/consultorio-form.component';
 import { AuthService } from '../../core/services/auth.service';
 import { forkJoin } from 'rxjs';
+import { NominatimService } from '../../core/services/nominatim.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,7 +23,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   consultorios: Consultorio[] = [];
   experienceSummaries: Record<string, ExperienceSummary> = {};
 
-  loadingConsultorios = false;  
+  loadingConsultorios = false;
   loadingExperiences = false;
   submittingExperience = false;
   submittingConsultorio = false;
@@ -55,7 +56,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private readonly consultorioService: ConsultorioService,
     private readonly experienceService: ExperienceService,
     private readonly fb: FormBuilder,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly nominatimService: NominatimService
   ) { }
 
   ngOnInit(): void {
@@ -110,22 +112,49 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const suggestedUpz = this.getMostCommonValue(nearest.map(c => c.codigo_upz));
 
     this.pendingCoordinates = { lng, lat };
-    this.openConsultorioModal(
-      {
-        identifica: '',
-        codigo_de: '',
-        nombre_de: '',
-        direccion: '',
-        telefono: '',
-        tipo_de_pr: '',
-        clase_de_p: '',
-        codigo_loc: suggestedLoc ?? null,
-        codigo_upz: suggestedUpz ?? null,
-        latitud: lat,
-        longitud: lng
+
+    this.nominatimService.reverseGeocode(lat, lng).subscribe({
+      next: (res) => {
+        const direccion = res.display_name || '';
+        console.log('📍 Dirección encontrada:', direccion);
+
+        this.openConsultorioModal(
+          {
+            identifica: '',
+            codigo_de: '',
+            nombre_de: '',
+            direccion,
+            telefono: '',
+            tipo_de_pr: '',
+            clase_de_p: '',
+            codigo_loc: suggestedLoc ?? null,
+            codigo_upz: suggestedUpz ?? null,
+            latitud: lat,
+            longitud: lng
+          },
+          'Nuevo consultorio'
+        );
       },
-      'Nuevo consultorio'
-    );
+      error: (err) => {
+        console.warn('⚠️ No se pudo obtener dirección:', err);
+        this.openConsultorioModal(
+          {
+            identifica: '',
+            codigo_de: '',
+            nombre_de: '',
+            direccion: '',
+            telefono: '',
+            tipo_de_pr: '',
+            clase_de_p: '',
+            codigo_loc: suggestedLoc ?? null,
+            codigo_upz: suggestedUpz ?? null,
+            latitud: lat,
+            longitud: lng
+          },
+          'Nuevo consultorio'
+        );
+      }
+    });
   }
 
   openConsultorioModal(initial: Partial<ConsultorioFormValue>, title: string): void {
@@ -211,6 +240,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const codigoDe = formValue.codigo_de?.toString().trim() ?? undefined;
     const nombre = formValue.nombre_de?.trim() ?? '';
     const direccion = formValue.direccion?.trim() ?? '';
+    const correo = formValue.correo_ele?.trim() ?? '';
+    const geom = formValue.geom?.trim() ?? '';
+    const nombre_del = formValue.nombre_del?.trim() ?? '';
     const telefono = formValue.telefono?.trim() ?? undefined;
     const tipoPrestacion = formValue.tipo_de_pr?.trim() ?? undefined;
     const clasePrestador = formValue.clase_de_p?.trim() ?? undefined;
@@ -220,7 +252,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
       direccion,
       coordenadas: [longitud, latitud] as [number, number],
       latitud,
-      longitud
+      longitud,
+      correo_ele: correo,
+      geom,
+      nombre_del,
     };
 
     if (identifica) payload.identifica = identifica;

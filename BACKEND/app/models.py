@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.gis.db import models as gis_models
 
 class Consultorio(models.Model):
     class Meta:
@@ -19,6 +20,7 @@ class Consultorio(models.Model):
     codigo_upz = models.IntegerField(db_column='codigo_upz')
     coordenada = models.FloatField(db_column='coordenada')
     coordena_1 = models.FloatField(db_column='coordena_1')
+    geom = gis_models.PointField(srid=4326, null=True, blank=True) #convierte el modelo en un modelo geoespacial de Django
 
     def __str__(self):
         return self.nombre_de
@@ -32,7 +34,7 @@ class ConsultorioExperience(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-created_at"] # Las experiencias más recientes primero
 
     def __str__(self):
         return f"{self.consultorio} · {self.rating}"

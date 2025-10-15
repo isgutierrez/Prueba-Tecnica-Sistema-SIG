@@ -1,231 +1,303 @@
-<section
-  class="w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl"
+<div
+  class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm"
 >
-  <!-- ENCABEZADO -->
-  <header
-    class="flex items-start justify-between bg-gradient-to-r from-slate-900 via-blue-700 to-blue-600 px-6 py-5 text-white"
+  <section
+    class="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white text-slate-900 shadow-2xl"
   >
-    <div>
-      <h3 class="text-xl font-semibold tracking-tight">{{ title }}</h3>
-      <p class="mt-1 text-sm opacity-90">
-        Completa los datos del consultorio.
-      </p>
-    </div>
-    <button
-      type="button"
-      class="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-lg text-white transition hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/70"
-      (click)="onCancel()"
-      [disabled]="loading"
-      aria-label="Cerrar formulario"
+    <!-- ENCABEZADO -->
+    <header
+      class="flex items-start justify-between bg-gradient-to-r from-slate-900 via-blue-700 to-blue-600 px-6 py-5 text-white"
     >
-      ✕
-    </button>
-  </header>
-
-  <!-- FORMULARIO -->
-  <form
-    [formGroup]="form"
-    (ngSubmit)="onSubmit()"
-    class="grid gap-6 bg-slate-50/80 px-6 py-6 sm:grid-cols-2"
-  >
-    <!-- NOMBRE -->
-    <div class="flex flex-col gap-2 sm:col-span-2">
-      <label
-        class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
-        for="consultorio-nombre"
-      >
-        Nombre del consultorio
-      </label>
-      <input
-        id="consultorio-nombre"
-        type="text"
-        formControlName="nombre_de"
-        placeholder="Nombre del consultorio"
-        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-        [ngClass]="{
-          'border-red-400 focus:border-red-500 focus:ring-red-200':
-            form.controls['nombre_de'].invalid &&
-            form.controls['nombre_de'].touched
-        }"
-      />
-      <small
-        *ngIf="form.controls['nombre_de'].invalid && form.controls['nombre_de'].touched"
-        class="text-xs font-medium text-red-600"
-      >
-        Ingresa el nombre del consultorio.
-      </small>
-    </div>
-
-    <!-- DIRECCIÓN -->
-    <div class="flex flex-col gap-2 sm:col-span-2">
-      <label
-        class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
-        for="consultorio-direccion"
-      >
-        Dirección
-      </label>
-      <input
-        id="consultorio-direccion"
-        type="text"
-        formControlName="direccion"
-        placeholder="Dirección completa"
-        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-      />
-    </div>
-
-    <!-- TELÉFONO -->
-    <div class="flex flex-col gap-2">
-      <label
-        class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
-        for="consultorio-telefono"
-      >
-        Teléfono
-      </label>
-      <input
-        id="consultorio-telefono"
-        type="text"
-        formControlName="telefono"
-        placeholder="Teléfono de contacto"
-        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-      />
-    </div>
-
-    <!-- TIPO -->
-    <div class="flex flex-col gap-2">
-      <label
-        class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
-        for="consultorio-tipo"
-      >
-        Tipo de prestación
-      </label>
-      <input
-        id="consultorio-tipo"
-        type="text"
-        formControlName="tipo_de_pr"
-        placeholder="Ej. Pediatría"
-        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-      />
-    </div>
-
-    <!-- CLASE -->
-    <div class="flex flex-col gap-2">
-      <label
-        class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
-        for="consultorio-clase"
-      >
-        Clase de prestador
-      </label>
-      <input
-        id="consultorio-clase"
-        type="text"
-        formControlName="clase_de_p"
-        placeholder="Ej. IPS Privada"
-        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-      />
-    </div>
-
-    <!-- LOCALIDAD (Sugerida) -->
-    <div class="flex flex-col gap-1">
-      <label
-        class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
-        for="consultorio-loc"
-      >
-        Código localidad (sugerido)
-      </label>
-      <input
-        id="consultorio-loc"
-        type="number"
-        formControlName="codigo_loc"
-        placeholder="Ej. 12"
-        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-      />
-      <small class="text-xs text-slate-500">
-        Sugerido según ubicación. Puedes modificarlo si es necesario.
-      </small>
-    </div>
-
-    <!-- UPZ (Sugerida) -->
-    <div class="flex flex-col gap-1">
-      <label
-        class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
-        for="consultorio-upz"
-      >
-        Código UPZ (sugerido)
-      </label>
-      <input
-        id="consultorio-upz"
-        type="number"
-        formControlName="codigo_upz"
-        placeholder="Ej. 110"
-        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-      />
-      <small class="text-xs text-slate-500">
-        Sugerido según IPS cercanas.
-      </small>
-    </div>
-
-    <!-- LATITUD Y LONGITUD SOLO LECTURA -->
-    <div
-      class="sm:col-span-2 mt-4 flex flex-col gap-2 rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800"
-    >
-      <div class="font-semibold text-blue-900">
-        📍 Ubicación detectada automáticamente
+      <div>
+        <h3 class="text-xl font-semibold tracking-tight">{{ title }}</h3>
+        <p class="mt-1 text-sm opacity-90">
+          Completa los datos del consultorio.
+        </p>
       </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <span class="block text-xs text-blue-700 uppercase">Latitud</span>
-          <input
-            type="number"
-            formControlName="latitud"
-            readonly
-            class="w-full bg-transparent border-none text-sm font-semibold text-blue-900"
-          />
-        </div>
-        <div>
-          <span class="block text-xs text-blue-700 uppercase">Longitud</span>
-          <input
-            type="number"
-            formControlName="longitud"
-            readonly
-            class="w-full bg-transparent border-none text-sm font-semibold text-blue-900"
-          />
-        </div>
-      </div>
-      <small class="text-xs text-blue-700">
-        Coordenadas obtenidas del mapa al hacer clic.
-      </small>
-    </div>
-
-    <!-- ERROR GENERAL -->
-    <div *ngIf="submissionError" class="sm:col-span-2">
-      <pre
-        class="w-full whitespace-pre-wrap rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
-      >{{ submissionError }}</pre>
-    </div>
-
-    <!-- BOTONES -->
-    <footer class="sm:col-span-2 flex items-center justify-end gap-3">
       <button
         type="button"
-        class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-blue-200"
+        class="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-lg text-white transition hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/70"
         (click)="onCancel()"
         [disabled]="loading"
+        aria-label="Cerrar formulario"
       >
-        Cancelar
+        ✕
       </button>
+    </header>
 
-      <button
-        type="submit"
-        class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 px-5 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-white shadow-lg transition hover:brightness-105 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60"
-        [disabled]="loading"
+    <!-- FORMULARIO -->
+    <form
+      [formGroup]="form"
+      (ngSubmit)="onSubmit()"
+      class="grid gap-6 bg-slate-50/80 px-6 py-6 sm:grid-cols-2"
+    >
+      <!-- NOMBRE -->
+      <div class="flex flex-col gap-2 sm:col-span-2">
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="consultorio-nombre"
+        >
+          Nombre del consultorio
+        </label>
+        <input
+          id="consultorio-nombre"
+          type="text"
+          formControlName="nombre_de"
+          placeholder="Nombre del consultorio"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+          [ngClass]="{
+            'border-red-400 focus:border-red-500 focus:ring-red-200':
+              form.controls['nombre_de'].invalid &&
+              form.controls['nombre_de'].touched
+          }"
+        />
+        <small
+          *ngIf="
+            form.controls['nombre_de'].invalid &&
+            form.controls['nombre_de'].touched
+          "
+          class="text-xs font-medium text-red-600"
+        >
+          Ingresa el nombre del consultorio.
+        </small>
+      </div>
+
+      <!-- DIRECCIÓN -->
+      <div class="flex flex-col gap-2 sm:col-span-2">
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="consultorio-direccion"
+        >
+          Dirección
+        </label>
+        <input
+          id="consultorio-direccion"
+          type="text"
+          formControlName="direccion"
+          placeholder="Dirección completa"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+        <small
+          *ngIf="
+            form.controls['direccion'].invalid &&
+            form.controls['direccion'].touched
+          "
+          class="text-xs font-medium text-red-600"
+        >
+          Ingresa una dirección válida.
+        </small>
+      </div>
+
+      <!-- TELÉFONO -->
+      <div class="flex flex-col gap-2">
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="consultorio-telefono"
+        >
+          Teléfono
+        </label>
+        <input
+          id="consultorio-telefono"
+          type="text"
+          formControlName="telefono"
+          placeholder="Teléfono de contacto"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+      </div>
+
+      <!-- CORREO -->
+      <div class="flex flex-col gap-2">
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="consultorio-correo"
+        >
+          Correo Electrónico
+        </label>
+        <input
+          id="consultorio-correo"
+          type="email"
+          formControlName="correo_ele"
+          placeholder="correo electrónico de contacto"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+        <small
+          *ngIf="
+            form.get('correo_ele')?.touched && form.get('correo_ele')?.invalid
+          "
+          class="mt-1 text-xs font-medium text-red-600"
+        >
+          <ng-container *ngIf="form.get('correo_ele')?.hasError('email')">
+            Ingresa un correo electrónico válido (ejemplo&#64;dominio.com).
+          </ng-container>
+        </small>
+      </div>
+
+      <!-- TIPO -->
+      <div class="flex flex-col gap-2">
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="consultorio-tipo"
+        >
+          Tipo de prestación
+        </label>
+        <input
+          id="consultorio-tipo"
+          type="text"
+          formControlName="tipo_de_pr"
+          placeholder="Ej. IPS"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+      </div>
+
+      <!-- TIPO -->
+      <div class="flex flex-col gap-2">
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="consultorio-servicio"
+        >
+          Tipo de servicio
+        </label>
+        <input
+          id="consultorio-servicio"
+          type="text"
+          formControlName="nombre_del"
+          placeholder="Ej. Pediatría"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+      </div>
+
+      <!-- CLASE -->
+      <div class="flex flex-col gap-2">
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="consultorio-clase"
+        >
+          Clase de prestador
+        </label>
+        <select
+          id="consultorio-clase"
+          formControlName="clase_de_p"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        >
+          <option value="">Selecciona una opción</option>
+          <option value="Privada">Privada</option>
+          <option value="Pública">Pública</option>
+        </select>
+        <small
+          *ngIf="
+            form.controls['clase_de_p'].invalid &&
+            form.controls['clase_de_p'].touched
+          "
+          class="text-xs font-medium text-red-600"
+        >
+          Selecciona la clase de prestador.
+        </small>
+      </div>
+
+      <!-- LOCALIDAD (Sugerida) -->
+      <div class="flex flex-col gap-1">
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="consultorio-loc"
+        >
+          Código localidad (sugerido)
+        </label>
+        <input
+          id="consultorio-loc"
+          type="number"
+          formControlName="codigo_loc"
+          placeholder="Ej. 12"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+        <small class="text-xs text-slate-500">
+          Sugerido según ubicación. Puedes modificarlo si es necesario.
+        </small>
+      </div>
+
+      <!-- UPZ (Sugerida) -->
+      <div class="flex flex-col gap-1">
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="consultorio-upz"
+        >
+          Código UPZ (sugerido)
+        </label>
+        <input
+          id="consultorio-upz"
+          type="number"
+          formControlName="codigo_upz"
+          placeholder="Ej. 110"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium shadow-sm transition focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+        />
+        <small class="text-xs text-slate-500">
+          Sugerido según IPS cercanas.
+        </small>
+      </div>
+
+      <!-- LATITUD Y LONGITUD SOLO LECTURA -->
+      <div
+        class="sm:col-span-2 mt-4 flex flex-col gap-2 rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800"
       >
-        <span
-          *ngIf="loading"
-          class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
-          aria-hidden="true"
-        ></span>
-        <span>{{ loading ? 'Guardando…' : 'Guardar consultorio' }}</span>
-      </button>
-    </footer>
-  </form>
-</section>
+        <div class="font-semibold text-blue-900">
+          📍 Ubicación detectada automáticamente
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <span class="block text-xs text-blue-700 uppercase">Latitud</span>
+            <input
+              type="number"
+              formControlName="latitud"
+              readonly
+              class="w-full bg-transparent border-none text-sm font-semibold text-blue-900"
+            />
+          </div>
+          <div>
+            <span class="block text-xs text-blue-700 uppercase">Longitud</span>
+            <input
+              type="number"
+              formControlName="longitud"
+              readonly
+              class="w-full bg-transparent border-none text-sm font-semibold text-blue-900"
+            />
+          </div>
+        </div>
+        <small class="text-xs text-blue-700">
+          Coordenadas obtenidas del mapa al hacer clic.
+        </small>
+      </div>
+
+      <!-- ERROR GENERAL -->
+      <div *ngIf="submissionError" class="sm:col-span-2">
+        <pre
+          class="w-full whitespace-pre-wrap rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600"
+          >{{ submissionError }}</pre
+        >
+      </div>
+
+      <!-- BOTONES -->
+      <footer class="sm:col-span-2 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 transition hover:brightness-95 focus-visible:ring-2 focus-visible:ring-blue-200"
+          (click)="onCancel()"
+          [disabled]="loading"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 px-5 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-white shadow-lg transition hover:brightness-105 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60"
+          [disabled]="loading"
+        >
+          <span
+            *ngIf="loading"
+            class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+            aria-hidden="true"
+          ></span>
+          <span>{{ loading ? "Guardando…" : "Guardar consultorio" }}</span>
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>

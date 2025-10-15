@@ -1,4 +1,5 @@
-import json
+# IMPORTACIONES
+import json 
 from http import HTTPStatus
 
 from django.db.models import Max, Q
@@ -191,12 +192,13 @@ def consultorio_collection(request):
         "codigo_upz",
         "coordenada",
         "coordena_1",
+        "geom",
     }
     data = {}
     try:
         for field in field_names:
             value = payload.get(field, "")
-            if value in (None, "") and field in {"nombre_del", "correo_ele"}:
+            if value in (None, "") and field in {"nombre_del", "correo_ele", "direccion"}:
                 data[field] = ""
                 continue
             if value in (None, ""):
@@ -207,6 +209,11 @@ def consultorio_collection(request):
             {"error": "Datos de consultorio inválidos"},
             status=HTTPStatus.BAD_REQUEST,
         )
+    geom_wkt = payload.get("geom")
+    if geom_wkt:
+        from django.contrib.gis.geos import GEOSGeometry
+        data["geom"] = GEOSGeometry(geom_wkt)
+
     new_id, new_identifica, codigo = _generate_identifiers()
     consultorio = Consultorio.objects.create(
         id=new_id,
@@ -259,6 +266,11 @@ def consultorio_detail(request, pk):
                     {"error": f"Valor inválido para {field}"},
                     status=HTTPStatus.BAD_REQUEST,
                 )
+    geom_wkt = payload.get("geom")
+    if geom_wkt:
+        from django.contrib.gis.geos import GEOSGeometry
+        consultorio.geom = GEOSGeometry(geom_wkt)
+
     consultorio.save()
     return JsonResponse(
         {"message": "Consultorio actualizado", "data": _consultorio_to_dict(consultorio)},

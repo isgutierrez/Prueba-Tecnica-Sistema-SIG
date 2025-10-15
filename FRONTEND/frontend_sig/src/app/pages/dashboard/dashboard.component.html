@@ -1,11 +1,21 @@
 <div class="container mx-auto space-y-6 p-4">
   <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg">
     <h2 class="text-lg font-semibold text-slate-900">Buscar consultorios</h2>
-    <p class="mt-1 text-sm text-slate-500">Filtra por nombre, tipo de servicio, clase de prestador o ubicación.</p>
+    <p class="mt-1 text-sm text-slate-500">
+      Filtra por nombre, tipo de servicio, clase de prestador o ubicación.
+    </p>
 
-    <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <form
+      [formGroup]="searchForm"
+      (ngSubmit)="onSearch()"
+      class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+    >
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="filter-q">Búsqueda libre</label>
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="filter-q"
+          >Búsqueda libre</label
+        >
         <input
           id="filter-q"
           type="text"
@@ -16,21 +26,32 @@
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="filter-tipo-prestador">Tipo de prestador</label>
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="filter-tipo-prestador"
+          >Tipo de prestador</label
+        >
         <select
           id="filter-tipo-prestador"
           formControlName="tipo_prestador"
           class="w-full appearance-none rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
         >
           <option value="">Todos</option>
-          <option *ngFor="let option of tipoPrestadorOptions" [value]="option.value">
+          <option
+            *ngFor="let option of tipoPrestadorOptions"
+            [value]="option.value"
+          >
             {{ option.label }}
           </option>
         </select>
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="filter-localidad">Localidad</label>
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="filter-localidad"
+          >Localidad</label
+        >
         <input
           id="filter-localidad"
           type="number"
@@ -41,7 +62,11 @@
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600" for="filter-upz">UPZ</label>
+        <label
+          class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600"
+          for="filter-upz"
+          >UPZ</label
+        >
         <input
           id="filter-upz"
           type="number"
@@ -51,7 +76,9 @@
         />
       </div>
 
-      <div class="mt-6 flex flex-wrap items-center gap-3 md:col-span-2 lg:col-span-3">
+      <div
+        class="mt-6 flex flex-wrap items-center gap-3 md:col-span-2 lg:col-span-3"
+      >
         <button
           type="submit"
           class="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-lg transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -70,13 +97,15 @@
           class="ml-auto inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700 shadow-sm transition hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-emerald-400"
           (click)="toggleCreateMode()"
         >
-          {{ isCreateMode ? 'Cancelar creación' : 'Nuevo consultorio' }}
+          {{ isCreateMode ? "Cancelar creación" : "Nuevo consultorio" }}
         </button>
       </div>
     </form>
   </section>
 
-  <div class="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+  <div
+    class="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+  >
     <div
       *ngIf="successMessage"
       class="pointer-events-none absolute right-4 top-4 z-50 flex max-w-xs items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 shadow-xl"
@@ -94,7 +123,7 @@
 
     <app-map
       [markers]="markers"
-      [config]="{ center: [-74.0721, 4.7110], zoom: 11 }"
+      [config]="{ center: [-74.0721, 4.711], zoom: 11 }"
       [useGoogleStyle]="true"
       [showControls]="true"
       [experienceSummaries]="experienceSummaries"
@@ -118,7 +147,7 @@
 
     <div
       *ngIf="showConsultorioModal"
-      class="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/70 px-4 py-6 backdrop-blur-sm"
+      class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-800/40 px-4 py-6 backdrop-blur-sm"
     >
       <app-consultorio-form
         [title]="consultorioFormTitle"

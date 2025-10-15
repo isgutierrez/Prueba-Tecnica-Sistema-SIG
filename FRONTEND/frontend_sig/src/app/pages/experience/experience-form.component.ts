@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, Signal, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 export interface ExperienceFormValue {
   author: string;
@@ -31,8 +32,8 @@ export class ExperienceFormComponent {
     rating: [5, [Validators.required, Validators.min(1), Validators.max(5)]],
     comment: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(400)]]
   });
-
-  readonly commentLength: Signal<number> = computed(() => this.form.controls.comment.value?.length ?? 0);
+  readonly commentValue = toSignal(this.form.controls.comment.valueChanges, { initialValue: '' });
+  readonly commentLength = computed(() => this.commentValue()?.length ?? 0);
   readonly maxCommentLength = 400;
   readonly hoveredRating = signal<number | null>(null);
   readonly displayRating = computed(() => this.hoveredRating() ?? (this.form.controls.rating.value ?? 0));
@@ -56,6 +57,7 @@ export class ExperienceFormComponent {
     this.cancel.emit();
   }
 
+  // No dependen de dom, usa signals para manejar el hover y el click
   setRating(value: number): void {
     if (this.loading) {
       return;
